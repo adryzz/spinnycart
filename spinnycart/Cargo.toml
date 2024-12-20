@@ -5,9 +5,13 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.94"
-axum = { version = "0.7.9", features = ["http2", "macros", "ws"] }
+axum = { version = "0.7.9", features = ["http2", "macros", "tracing", "ws"] }
+axum-extra = { version = "0.9.6", features = ["query"] }
+axum-server = { version = "0.7", features = ["tls-rustls"] }
 confique = { version = "0.3.0", features = ["toml"] }
-tokio = { version = "1.42.0", features = ["full"] }
+sqlx = { version = "0.8.2", features = ["sqlite", "runtime-tokio-rustls"] }
+tokio = { version = "1.42.0", features = ["full", "tracing"] }
+tower-http = { version = "0.6.2", features = ["trace"] }
 tracing = "0.1.41"
 tracing-journald = "0.3.1"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter", "tracing"] }
