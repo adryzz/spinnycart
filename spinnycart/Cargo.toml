@@ -1,0 +1,13 @@
+[package]
+name = "spinnycart"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.94"
+axum = { version = "0.7.9", features = ["http2", "macros", "ws"] }
+confique = { version = "0.3.0", features = ["toml"] }
+tokio = { version = "1.42.0", features = ["full"] }
+tracing = "0.1.41"
+tracing-journald = "0.3.1"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter", "tracing"] }
