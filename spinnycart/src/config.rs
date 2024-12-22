@@ -54,6 +54,15 @@ pub struct NetworkConf {
 
     #[config(env = "TLS_KEY_PATH")]
     pub tls_key_path: Option<PathBuf>,
+
+    #[config(env = "WEBSOCKET_TRANSPORT_ENABLED", default = true)]
+    pub websocket_transport_enabled: bool,
+
+    #[config(env = "TLS_TRANSPORT_ENABLED", default = true)]
+    pub tls_transport_enabled: bool,
+
+    #[config(env = "QUIC_TRANSPORT_ENABLED", default = true)]
+    pub quic_transport_enabled: bool,
 }
 
 #[derive(Config, Debug, Clone)]
@@ -93,7 +102,6 @@ pub struct LimitsConf {
 #[derive(Config, Debug, Clone)]
 pub struct AuthConf {}
 
-
 impl NetworkConf {
     pub fn https(&self) -> bool {
         match (self.https_port, &self.tls_cert_path, &self.tls_key_path) {
@@ -112,8 +120,59 @@ impl NetworkConf {
                 }
 
                 tracing::warn!("Running in HTTP-only mode.");
-                return false
+                return false;
             }
+        }
+    }
+
+    pub fn tls(&self) -> bool {
+        match (
+            &self.tls_cert_path,
+            &self.tls_key_path,
+            self.tls_transport_enabled,
+            self.quic_transport_enabled,
+        ) {
+            (None, None, false, false) => return false,
+            (Some(_), Some(_), _, _) => return true,
+            _ => {
+                if self.tls_transport_enabled {
+                    tracing::error!(
+                        "TLS transport is enabled, but no TLS certificate/key was configured."
+                    );
+                }
+                if self.quic_transport_enabled {
+                    tracing::error!(
+                        "QUIC transport is enabled, but no TLS certificate/key was configured."
+                    );
+                }
+
+                tracing::warn!("Running with only the websocket transport.");
+                return false;
+            }
+        }
+    }
+
+    pub fn can_use_tls_transport(&self) -> bool {
+        match (
+            &self.tls_cert_path,
+            &self.tls_key_path,
+            self.tls_transport_enabled,
+        ) {
+            (None, None, false) => return false,
+            (Some(_), Some(_), true) => return true,
+            _ => return false,
+        }
+    }
+
+    pub fn can_use_quic_transport(&self) -> bool {
+        match (
+            &self.tls_cert_path,
+            &self.tls_key_path,
+            self.quic_transport_enabled,
+        ) {
+            (None, None, false) => return false,
+            (Some(_), Some(_), true) => return true,
+            _ => return false,
         }
     }
 }
